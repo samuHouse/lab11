@@ -31,37 +31,59 @@ public final class MusicGroupImpl implements MusicGroup {
 
     @Override
     public Stream<String> orderedSongNames() {
-        return null;
+        return songs.stream()
+                .map(Song::getSongName)
+                .sorted();
     }
 
     @Override
     public Stream<String> albumNames() {
-        return null;
+        return albums.keySet().stream();
     }
 
     @Override
     public Stream<String> albumInYear(final int year) {
-        return null;
+        return albums.entrySet().stream()
+                .filter(entry -> {
+                    return entry.getValue() == year;
+                })
+                .map(entry -> entry.getKey());
     }
 
     @Override
     public int countSongs(final String albumName) {
-        return -1;
+        return (int)songs.stream()
+                .filter(song -> {
+                    return song.albumName.isPresent() && song.getAlbumName().get() == albumName;
+                })
+                .count();
     }
 
     @Override
     public int countSongsInNoAlbum() {
-        return -1;
+        return (int)songs.stream()
+                .filter(song ->{
+                    return song.albumName.isEmpty();
+                })
+                .count();
     }
 
     @Override
     public OptionalDouble averageDurationOfSongs(final String albumName) {
-        return null;
+        final var sum = songs.stream()
+                .filter(song -> {
+                    return song.albumName.isPresent() && song.getAlbumName().get() == albumName;
+                })
+                .map(Song::getDuration)
+                .reduce((a,b)->a+b);
+        return sum.isPresent() ? OptionalDouble.of(sum.get()/countSongs(albumName)) : OptionalDouble.empty();
     }
 
     @Override
     public Optional<String> longestSong() {
-        return null;
+        final Optional<Song> stream = songs.stream()
+                .max((s1,s2)->Double.compare(s1.getDuration(), s2.getDuration()));
+        return stream.isPresent() ? Optional.of(stream.get().getSongName()) : Optional.empty();
     }
 
     @Override
